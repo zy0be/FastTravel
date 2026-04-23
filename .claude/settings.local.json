@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/zyobe/Documents/projets/**)",
+      "Bash(npx create-next-app@latest FastTravel --typescript --tailwind --eslint --app --src-dir --no-import-alias --yes)",
+      "Bash(npx create-next-app@latest fasttravel --typescript --tailwind --eslint --app --src-dir --no-import-alias --yes)"
+    ]
+  }
+}
