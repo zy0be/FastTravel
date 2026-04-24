@@ -54,7 +54,7 @@ function buildFlightUrl(origin: string, destination: string, departureDate: stri
 }
 
 function buildHotelUrl(cityName: string, checkIn: string, checkOut: string, adults: number, hotelName?: string): string {
-  const params = new URLSearchParams({
+  const searchParams = new URLSearchParams({
     ss: hotelName ? `${hotelName}, ${cityName}` : cityName,
     checkin: checkIn,
     checkout: checkOut,
@@ -63,11 +63,16 @@ function buildHotelUrl(cityName: string, checkIn: string, checkOut: string, adul
     lang: "en-gb",
     selected_currency: "EUR",
   });
-  // Inject Booking.com affiliate ID if available
+
+  const bookingUrl = `https://www.booking.com/searchresults.html?${searchParams}`;
+
+  // CJ Affiliate tracking link format: click-{PID}-{AdvertiserID}
+  // Booking.com FR advertiser ID on CJ = 4297313
   if (BOOKING_AID && !BOOKING_AID.startsWith("your_")) {
-    params.set("aid", BOOKING_AID);
+    return `https://www.anrdoezrs.net/click-${BOOKING_AID}-4297313?url=${encodeURIComponent(bookingUrl)}`;
   }
-  return `https://www.booking.com/searchresults.html?${params}`;
+
+  return bookingUrl;
 }
 
 async function searchFlights(
@@ -268,3 +273,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Search failed" }, { status: 500 });
   }
 }
+
