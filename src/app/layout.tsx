@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FastTravel — Budget Travel Deals",
-  description: "Find the best flight + hotel combos within your budget",
+  title: "SpeedTravel — Budget Travel Deals",
+  description: "Enter your budget. Get the best flight + hotel combo instantly.",
 };
 
 export default function RootLayout({

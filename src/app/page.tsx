@@ -47,7 +47,7 @@ export default function Home() {
           ✈️ Budget Travel Finder
         </div>
         <h1 className="text-5xl sm:text-6xl font-black text-white mb-4 tracking-tight">
-          Fast<span className="text-indigo-400">Travel</span>
+          Speed<span className="text-indigo-400">Travel</span>
         </h1>
         <p className="text-white/50 text-lg max-w-md mx-auto">
           Enter your budget. We find the best flight + hotel combo that fits.
