@@ -37,20 +37,18 @@ function getTodayPlus(days: number): string {
 }
 
 function buildFlightUrl(origin: string, destination: string, departureDate: string, returnDate: string, adults: number): string {
-  // Skyscanner affiliate link if ID available, otherwise Google Flights
+  // 1. Skyscanner affiliate (best — commission on booking)
   if (SKYSCANNER_ID && !SKYSCANNER_ID.startsWith("your_")) {
-    const params = new URLSearchParams({
-      origin,
-      destination,
-      outboundDate: departureDate,
-      inboundDate: returnDate,
-      adults: String(adults),
-      currency: "EUR",
-      associateid: SKYSCANNER_ID,
-    });
-    return `https://www.skyscanner.net/transport/flights/${origin.toLowerCase()}/${destination.toLowerCase()}/${departureDate.replace(/-/g, "")}/${returnDate.replace(/-/g, "")}/?${params}`;
+    const dep = departureDate.replace(/-/g, "");
+    const ret = returnDate.replace(/-/g, "");
+    return `https://www.skyscanner.net/transport/flights/${origin.toLowerCase()}/${destination.toLowerCase()}/${dep}/${ret}/?adults=${adults}&currency=EUR&associateid=${SKYSCANNER_ID}`;
   }
-  // Fallback: Google Flights
+  // 2. Travelpayouts affiliate (commission via Aviasales/Jetradar)
+  if (SKYSCANNER_ID && SKYSCANNER_ID.startsWith("TP-")) {
+    const marker = SKYSCANNER_ID.replace("TP-", "");
+    return `https://www.aviasales.com/search/${origin}${departureDate.replace(/-/g, "")}${destination}${returnDate.replace(/-/g, "")}1?marker=${marker}`;
+  }
+  // 3. Fallback: Google Flights (no commission but best UX)
   const q = `flights from ${origin} to ${destination} on ${departureDate} returning ${returnDate}`;
   return `https://www.google.com/travel/flights/search?q=${encodeURIComponent(q)}&adults=${adults}&curr=EUR`;
 }
@@ -172,10 +170,12 @@ async function searchHotels(
       : 0;
 
     if (price > 0 && price <= maxPrice) {
-      // Use SerpAPI's direct hotel link if available (exact property page on Google Hotels)
-      // Otherwise fallback to Booking.com search with hotel name pre-filled
-      const directLink: string | undefined = hotel.link;
-      const bookingUrl = directLink || buildHotelUrl(destinationName, checkIn, checkOut, adults, hotel.name);
+      // If affiliate ID is set → Booking.com with hotel name (commission tracked)
+      // Otherwise → Google Hotels direct link (exact property, best UX, no commission)
+      const hasAffiliateId = BOOKING_AID && !BOOKING_AID.startsWith("your_");
+      const bookingUrl = hasAffiliateId
+        ? buildHotelUrl(destinationName, checkIn, checkOut, adults, hotel.name)
+        : (hotel.link || buildHotelUrl(destinationName, checkIn, checkOut, adults, hotel.name));
 
       return {
         hotelId: String(hotel.property_token || hotel.name),
