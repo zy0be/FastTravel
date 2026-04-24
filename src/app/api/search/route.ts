@@ -3,6 +3,8 @@ import type { SearchParams, FlightOffer, HotelOffer, TravelCombo } from "@/types
 
 const SERPAPI_KEY = process.env.SERPAPI_KEY;
 const SERPAPI_BASE = "https://serpapi.com/search";
+const BOOKING_AID = process.env.BOOKING_AFFILIATE_ID;
+const SKYSCANNER_ID = process.env.SKYSCANNER_AFFILIATE_ID;
 
 const POPULAR_DESTINATIONS = [
   { code: "BCN", name: "Barcelona" },
@@ -35,18 +37,25 @@ function getTodayPlus(days: number): string {
 }
 
 function buildFlightUrl(origin: string, destination: string, departureDate: string, returnDate: string, adults: number): string {
-  const params = new URLSearchParams({
-    tfs: "",
-    curr: "EUR",
-  });
-  // Google Flights deep link format
-  const base = `https://www.google.com/travel/flights/search`;
+  // Skyscanner affiliate link if ID available, otherwise Google Flights
+  if (SKYSCANNER_ID && !SKYSCANNER_ID.startsWith("your_")) {
+    const params = new URLSearchParams({
+      origin,
+      destination,
+      outboundDate: departureDate,
+      inboundDate: returnDate,
+      adults: String(adults),
+      currency: "EUR",
+      associateid: SKYSCANNER_ID,
+    });
+    return `https://www.skyscanner.net/transport/flights/${origin.toLowerCase()}/${destination.toLowerCase()}/${departureDate.replace(/-/g, "")}/${returnDate.replace(/-/g, "")}/?${params}`;
+  }
+  // Fallback: Google Flights
   const q = `flights from ${origin} to ${destination} on ${departureDate} returning ${returnDate}`;
-  return `${base}?q=${encodeURIComponent(q)}&adults=${adults}&curr=EUR`;
+  return `https://www.google.com/travel/flights/search?q=${encodeURIComponent(q)}&adults=${adults}&curr=EUR`;
 }
 
 function buildHotelUrl(cityName: string, checkIn: string, checkOut: string, adults: number, hotelName?: string): string {
-  // Booking.com search URL (affiliate program available later)
   const params = new URLSearchParams({
     ss: hotelName ? `${hotelName}, ${cityName}` : cityName,
     checkin: checkIn,
@@ -56,6 +65,10 @@ function buildHotelUrl(cityName: string, checkIn: string, checkOut: string, adul
     lang: "en-gb",
     selected_currency: "EUR",
   });
+  // Inject Booking.com affiliate ID if available
+  if (BOOKING_AID && !BOOKING_AID.startsWith("your_")) {
+    params.set("aid", BOOKING_AID);
+  }
   return `https://www.booking.com/searchresults.html?${params}`;
 }
 
