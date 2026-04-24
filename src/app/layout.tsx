@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,7 +25,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body suppressHydrationWarning className="min-h-full flex flex-col bg-[#07090f] text-[#e8eaf6]">{children}</body>
+      <body suppressHydrationWarning className="min-h-full flex flex-col bg-[#07090f] text-[#e8eaf6]">
+        {children}
+        {/* Travelpayouts Drive — affiliate monetization */}
+        <Script
+          src="https://emrldtp.com/NTIyMjk3.js?t=522297"
+          strategy="afterInteractive"
+        />
+      </body>
     </html>
   );
 }
