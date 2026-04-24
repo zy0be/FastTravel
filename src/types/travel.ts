@@ -19,12 +19,14 @@ export interface FlightOffer {
   currency: string;
   duration: string;
   stops: number;
+  bookingUrl: string;
 }
 
 export interface HotelOffer {
   hotelId: string;
   hotelName: string;
   cityCode: string;
+  cityName: string;
   price: number;
   currency: string;
   stars?: number;
@@ -33,6 +35,7 @@ export interface HotelOffer {
   checkIn: string;
   checkOut: string;
   nights: number;
+  bookingUrl: string;
 }
 
 export interface TravelCombo {

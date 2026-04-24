@@ -148,6 +148,26 @@ export default function ComboCard({ combo, budget }: Props) {
           <span className="text-sm text-white/40">Total for {flight.stops === 0 ? "direct" : ""} trip</span>
           <span className="text-2xl font-black text-indigo-300">€{totalPrice.toFixed(0)}</span>
         </div>
+
+        {/* Book buttons */}
+        <div className="grid grid-cols-2 gap-2 pt-1">
+          <a
+            href={flight.bookingUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 py-2.5 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/30 hover:border-indigo-400/60 rounded-xl text-indigo-300 hover:text-white text-sm font-semibold transition-all"
+          >
+            ✈️ Book flight
+          </a>
+          <a
+            href={hotel.bookingUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 py-2.5 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 hover:border-blue-400/60 rounded-xl text-blue-300 hover:text-white text-sm font-semibold transition-all"
+          >
+            🏨 Book hotel
+          </a>
+        </div>
       </div>
     </div>
   );

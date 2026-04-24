@@ -34,6 +34,31 @@ function getTodayPlus(days: number): string {
   return addDays(new Date().toISOString().split("T")[0], days);
 }
 
+function buildFlightUrl(origin: string, destination: string, departureDate: string, returnDate: string, adults: number): string {
+  const params = new URLSearchParams({
+    tfs: "",
+    curr: "EUR",
+  });
+  // Google Flights deep link format
+  const base = `https://www.google.com/travel/flights/search`;
+  const q = `flights from ${origin} to ${destination} on ${departureDate} returning ${returnDate}`;
+  return `${base}?q=${encodeURIComponent(q)}&adults=${adults}&curr=EUR`;
+}
+
+function buildHotelUrl(cityName: string, checkIn: string, checkOut: string, adults: number, hotelName?: string): string {
+  // Booking.com search URL (affiliate program available later)
+  const params = new URLSearchParams({
+    ss: hotelName ? `${hotelName}, ${cityName}` : cityName,
+    checkin: checkIn,
+    checkout: checkOut,
+    no_rooms: "1",
+    group_adults: String(adults),
+    lang: "en-gb",
+    selected_currency: "EUR",
+  });
+  return `https://www.booking.com/searchresults.html?${params}`;
+}
+
 async function searchFlights(
   origin: string,
   destination: string,
@@ -82,13 +107,17 @@ async function searchFlights(
     airlineLogo: leg.airline_logo || "",
     price,
     currency: "EUR",
-    duration: cheapest.total_duration ? `${Math.floor(cheapest.total_duration / 60)}h${String(cheapest.total_duration % 60).padStart(2, "0")}` : "",
+    duration: cheapest.total_duration
+      ? `${Math.floor(cheapest.total_duration / 60)}h${String(cheapest.total_duration % 60).padStart(2, "0")}`
+      : "",
     stops: (cheapest.flights?.length || 1) - 1,
+    bookingUrl: buildFlightUrl(origin, destination, departureDate, returnDate, adults),
   };
 }
 
 async function searchHotels(
-  destination: string,
+  destinationCode: string,
+  destinationName: string,
   checkIn: string,
   checkOut: string,
   adults: number,
@@ -96,7 +125,7 @@ async function searchHotels(
 ): Promise<HotelOffer | null> {
   const params = new URLSearchParams({
     engine: "google_hotels",
-    q: `Hotels in ${destination}`,
+    q: `Hotels in ${destinationName}`,
     check_in_date: checkIn,
     check_out_date: checkOut,
     adults: String(adults),
@@ -128,7 +157,8 @@ async function searchHotels(
       return {
         hotelId: String(hotel.property_token || hotel.name),
         hotelName: hotel.name || "Unknown Hotel",
-        cityCode: destination,
+        cityCode: destinationCode,
+        cityName: destinationName,
         price: Math.round(price * 100) / 100,
         currency: "EUR",
         stars: hotel.stars || undefined,
@@ -137,6 +167,7 @@ async function searchHotels(
         checkIn,
         checkOut,
         nights,
+        bookingUrl: buildHotelUrl(destinationName, checkIn, checkOut, adults, hotel.name),
       };
     }
   }
@@ -171,7 +202,6 @@ export async function POST(req: NextRequest) {
 
     const combos: TravelCombo[] = [];
 
-    // Run searches in parallel batches to stay fast
     const tasks = origins.flatMap((orig) =>
       destinations.map((dest) => ({ orig, dest }))
     );
@@ -187,7 +217,7 @@ export async function POST(req: NextRequest) {
             if (!flight || flight.price >= budget) return;
 
             const hotelBudget = budget - flight.price;
-            const hotel = await searchHotels(dest.name, depDate, retDate, adults, hotelBudget);
+            const hotel = await searchHotels(dest.code, dest.name, depDate, retDate, adults, hotelBudget);
             if (!hotel) return;
 
             const total = flight.price + hotel.price;
