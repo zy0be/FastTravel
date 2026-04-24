@@ -110,6 +110,11 @@ async function searchFlights(
 
   if (!price || !leg) return null;
 
+  // Use SerpAPI's booking link if available, otherwise build Skyscanner/Google Flights URL
+  const bookingUrl: string = cheapest.booking_token
+    ? `https://www.google.com/travel/flights/booking?tfs=${cheapest.booking_token}`
+    : buildFlightUrl(origin, destination, departureDate, returnDate, adults);
+
   return {
     id: `${origin}-${destination}-${departureDate}`,
     origin,
@@ -124,7 +129,7 @@ async function searchFlights(
       ? `${Math.floor(cheapest.total_duration / 60)}h${String(cheapest.total_duration % 60).padStart(2, "0")}`
       : "",
     stops: (cheapest.flights?.length || 1) - 1,
-    bookingUrl: buildFlightUrl(origin, destination, departureDate, returnDate, adults),
+    bookingUrl,
   };
 }
 
@@ -167,6 +172,11 @@ async function searchHotels(
       : 0;
 
     if (price > 0 && price <= maxPrice) {
+      // Use SerpAPI's direct hotel link if available (exact property page on Google Hotels)
+      // Otherwise fallback to Booking.com search with hotel name pre-filled
+      const directLink: string | undefined = hotel.link;
+      const bookingUrl = directLink || buildHotelUrl(destinationName, checkIn, checkOut, adults, hotel.name);
+
       return {
         hotelId: String(hotel.property_token || hotel.name),
         hotelName: hotel.name || "Unknown Hotel",
@@ -180,7 +190,7 @@ async function searchHotels(
         checkIn,
         checkOut,
         nights,
-        bookingUrl: buildHotelUrl(destinationName, checkIn, checkOut, adults, hotel.name),
+        bookingUrl,
       };
     }
   }
