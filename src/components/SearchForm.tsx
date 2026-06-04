@@ -23,6 +23,24 @@ const AIRPORT_OPTIONS = [
   { code: "BKK", label: "Bangkok (BKK)" },
 ];
 
+const DESTINATION_COUNTRIES = [
+  { code: "italy", label: "Italy", flag: "🇮🇹" },
+  { code: "greece", label: "Greece", flag: "🇬🇷" },
+  { code: "portugal", label: "Portugal", flag: "🇵🇹" },
+  { code: "spain", label: "Spain", flag: "🇪🇸" },
+  { code: "france", label: "France", flag: "🇫🇷" },
+  { code: "netherlands", label: "Netherlands", flag: "🇳🇱" },
+  { code: "czech", label: "Czech Rep.", flag: "🇨🇿" },
+  { code: "hungary", label: "Hungary", flag: "🇭🇺" },
+  { code: "austria", label: "Austria", flag: "🇦🇹" },
+  { code: "poland", label: "Poland", flag: "🇵🇱" },
+  { code: "ireland", label: "Ireland", flag: "🇮🇪" },
+  { code: "denmark", label: "Denmark", flag: "🇩🇰" },
+  { code: "turkey", label: "Turkey", flag: "🇹🇷" },
+  { code: "uae", label: "Dubai", flag: "🇦🇪" },
+  { code: "thailand", label: "Thailand", flag: "🇹🇭" },
+];
+
 function getTodayPlus(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() + days);
@@ -36,6 +54,13 @@ export default function SearchForm({ onSearch, loading }: Props) {
   const [returnDate, setReturnDate] = useState<string>(getTodayPlus(19));
   const [adults, setAdults] = useState<number>(1);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+
+  function toggleCountry(code: string) {
+    setSelectedCountries((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
+    );
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,6 +73,7 @@ export default function SearchForm({ onSearch, loading }: Props) {
       departureDate: departureDate || undefined,
       returnDate: returnDate || undefined,
       adults,
+      destinationCountries: selectedCountries.length > 0 ? selectedCountries : undefined,
     });
   }
 
@@ -73,6 +99,48 @@ export default function SearchForm({ onSearch, loading }: Props) {
           />
         </div>
         <p className="text-xs text-white/40">Flight + hotel, all included</p>
+      </div>
+
+      {/* Destination countries */}
+      <div className="space-y-2">
+        <label className="block text-sm text-white/60">
+          Destination countries
+          {selectedCountries.length > 0 && (
+            <span className="ml-2 text-indigo-400 font-semibold">{selectedCountries.length} selected</span>
+          )}
+          {selectedCountries.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelectedCountries([])}
+              className="ml-2 text-white/30 hover:text-white/60 text-xs transition-colors"
+            >
+              clear
+            </button>
+          )}
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {DESTINATION_COUNTRIES.map((country) => {
+            const selected = selectedCountries.includes(country.code);
+            return (
+              <button
+                key={country.code}
+                type="button"
+                onClick={() => toggleCountry(country.code)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                  selected
+                    ? "bg-indigo-600 border border-indigo-400 text-white"
+                    : "bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <span>{country.flag}</span>
+                <span>{country.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        {selectedCountries.length === 0 && (
+          <p className="text-xs text-white/30">No filter = search everywhere</p>
+        )}
       </div>
 
       {/* Adults */}
@@ -115,11 +183,11 @@ export default function SearchForm({ onSearch, loading }: Props) {
             <select
               value={origin}
               onChange={(e) => setOrigin(e.target.value)}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-400 transition-colors"
+              className="w-full px-4 py-3 bg-[#13131f] border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-400 transition-colors"
             >
-              <option value="">🌍 Anywhere (best prices)</option>
+              <option value="" className="bg-[#13131f] text-white">🌍 Anywhere (best prices)</option>
               {AIRPORT_OPTIONS.map((a) => (
-                <option key={a.code} value={a.code}>
+                <option key={a.code} value={a.code} className="bg-[#13131f] text-white">
                   {a.label}
                 </option>
               ))}
@@ -135,7 +203,7 @@ export default function SearchForm({ onSearch, loading }: Props) {
                 value={departureDate}
                 min={getTodayPlus(1)}
                 onChange={(e) => setDepartureDate(e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-400 transition-colors"
+                className="w-full px-4 py-3 bg-[#13131f] border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-400 transition-colors"
               />
             </div>
             <div className="space-y-1.5">
@@ -145,7 +213,7 @@ export default function SearchForm({ onSearch, loading }: Props) {
                 value={returnDate}
                 min={departureDate || getTodayPlus(2)}
                 onChange={(e) => setReturnDate(e.target.value)}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-400 transition-colors"
+                className="w-full px-4 py-3 bg-[#13131f] border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-400 transition-colors"
               />
             </div>
           </div>

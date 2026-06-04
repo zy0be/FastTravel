@@ -7,21 +7,26 @@ const BOOKING_AID = process.env.BOOKING_AFFILIATE_ID;
 const SKYSCANNER_ID = process.env.SKYSCANNER_AFFILIATE_ID;
 
 const POPULAR_DESTINATIONS = [
-  { code: "BCN", name: "Barcelona" },
-  { code: "LIS", name: "Lisbon" },
-  { code: "PRG", name: "Prague" },
-  { code: "BUD", name: "Budapest" },
-  { code: "ATH", name: "Athens" },
-  { code: "WAW", name: "Warsaw" },
-  { code: "VIE", name: "Vienna" },
-  { code: "DUB", name: "Dublin" },
-  { code: "CPH", name: "Copenhagen" },
-  { code: "BKK", name: "Bangkok" },
-  { code: "DXB", name: "Dubai" },
-  { code: "IST", name: "Istanbul" },
-  { code: "MXP", name: "Milan" },
-  { code: "FCO", name: "Rome" },
-  { code: "AMS", name: "Amsterdam" },
+  { code: "BCN", name: "Barcelona", country: "spain" },
+  { code: "LIS", name: "Lisbon", country: "portugal" },
+  { code: "PRG", name: "Prague", country: "czech" },
+  { code: "BUD", name: "Budapest", country: "hungary" },
+  { code: "ATH", name: "Athens", country: "greece" },
+  { code: "WAW", name: "Warsaw", country: "poland" },
+  { code: "VIE", name: "Vienna", country: "austria" },
+  { code: "DUB", name: "Dublin", country: "ireland" },
+  { code: "CPH", name: "Copenhagen", country: "denmark" },
+  { code: "BKK", name: "Bangkok", country: "thailand" },
+  { code: "DXB", name: "Dubai", country: "uae" },
+  { code: "IST", name: "Istanbul", country: "turkey" },
+  { code: "MXP", name: "Milan", country: "italy" },
+  { code: "FCO", name: "Rome", country: "italy" },
+  { code: "AMS", name: "Amsterdam", country: "netherlands" },
+  { code: "MAD", name: "Madrid", country: "spain" },
+  { code: "CDG", name: "Paris", country: "france" },
+  { code: "LYS", name: "Lyon", country: "france" },
+  { code: "SKG", name: "Thessaloniki", country: "greece" },
+  { code: "OPO", name: "Porto", country: "portugal" },
 ];
 
 const POPULAR_ORIGINS = ["CDG", "LHR", "MAD", "BER", "ZRH"];
@@ -222,8 +227,9 @@ export async function POST(req: NextRequest) {
 
     let destinations = POPULAR_DESTINATIONS;
     if (destinationCountries?.length) {
+      // Filter by country code (e.g. "italy", "greece") — exact match
       destinations = POPULAR_DESTINATIONS.filter((d) =>
-        destinationCountries.some((c) => d.name.toLowerCase().includes(c.toLowerCase()))
+        destinationCountries.includes(d.country)
       );
       if (!destinations.length) destinations = POPULAR_DESTINATIONS;
     }
