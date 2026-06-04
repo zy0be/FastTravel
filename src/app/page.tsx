@@ -122,8 +122,13 @@ export default function Home() {
       )}
 
       {/* Footer */}
-      <footer className="mt-20 text-center text-white/20 text-xs">
-        Powered by Amadeus Travel API · Prices may vary at booking
+      <footer className="mt-20 text-center text-white/20 text-xs space-y-2">
+        <p>Powered by SerpAPI · Prices may vary at booking · We may earn affiliate commissions</p>
+        <div className="flex justify-center gap-4">
+          <a href="/privacy" className="hover:text-white/50 transition-colors">Privacy Policy</a>
+          <a href="/legal" className="hover:text-white/50 transition-colors">Legal Mentions</a>
+          <a href="mailto:contact@speedtravel.app" className="hover:text-white/50 transition-colors">Contact</a>
+        </div>
       </footer>
     </main>
   );
