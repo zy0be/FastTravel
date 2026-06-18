@@ -6,7 +6,6 @@ const SERPAPI_BASE = "https://serpapi.com/search";
 const BOOKING_AID = process.env.BOOKING_AFFILIATE_ID;
 const SKYSCANNER_ID = process.env.SKYSCANNER_AFFILIATE_ID;
 const TP_TOKEN = process.env.TRAVELPAYOUTS_TOKEN;
-const TP_MARKER = process.env.SKYSCANNER_AFFILIATE_ID?.replace("TP-", "") || "522297";
 
 const POPULAR_DESTINATIONS = [
   { code: "BCN", name: "Barcelona", country: "spain" },
@@ -138,9 +137,7 @@ async function searchFlights(
   const cheapest = matches[0];
   const price = cheapest.price * adults;
 
-  const bookingUrl = `https://tp.media/r?marker=${TP_MARKER}&p=4114&u=${encodeURIComponent(
-    `https://www.kiwi.com/en/search/results/${origin.toLowerCase()}/${destination.toLowerCase()}/${departureDate}/${returnDate}?currency=EUR&adults=${adults}`
-  )}`;
+  const bookingUrl = `https://www.kiwi.com/en/search/results/${origin.toLowerCase()}/${destination.toLowerCase()}/${departureDate}/${returnDate}?currency=EUR&adults=${adults}`;
 
   return {
     id: `${origin}-${destination}-${departureDate}`,
