@@ -5,6 +5,8 @@ const SERPAPI_KEY = process.env.SERPAPI_KEY;
 const SERPAPI_BASE = "https://serpapi.com/search";
 const BOOKING_AID = process.env.BOOKING_AFFILIATE_ID;
 const SKYSCANNER_ID = process.env.SKYSCANNER_AFFILIATE_ID;
+const TP_TOKEN = process.env.TRAVELPAYOUTS_TOKEN;
+const TP_MARKER = process.env.SKYSCANNER_AFFILIATE_ID?.replace("TP-", "") || "522297";
 
 const POPULAR_DESTINATIONS = [
   { code: "BCN", name: "Barcelona", country: "spain" },
@@ -80,6 +82,45 @@ function buildHotelUrl(cityName: string, checkIn: string, checkOut: string, adul
   return bookingUrl;
 }
 
+// Cache: origin -> list of flight prices (refreshed every 6h)
+const flightCache = new Map<string, { data: TPFlight[]; fetchedAt: number }>();
+const CACHE_TTL = 6 * 60 * 60 * 1000;
+
+interface TPFlight {
+  origin: string;
+  destination: string;
+  price: number;
+  airline: string;
+  departure_at: string;
+  return_at: string;
+  number_of_changes: number;
+  duration: number;
+}
+
+async function fetchFlightPrices(origin: string, departureDate: string, returnDate: string): Promise<TPFlight[]> {
+  const cacheKey = `${origin}-${departureDate.substring(0, 7)}`;
+  const cached = flightCache.get(cacheKey);
+  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) return cached.data;
+
+  const params = new URLSearchParams({
+    origin,
+    currency: "EUR",
+    depart_date: departureDate.substring(0, 7),
+    return_date: returnDate.substring(0, 7),
+    limit: "1000",
+    token: TP_TOKEN!,
+  });
+
+  const res = await fetch(`https://api.travelpayouts.com/v2/prices/latest?${params}`);
+  if (!res.ok) return [];
+
+  const data = await res.json();
+  if (!data.success || !Array.isArray(data.data)) return [];
+
+  flightCache.set(cacheKey, { data: data.data, fetchedAt: Date.now() });
+  return data.data;
+}
+
 async function searchFlights(
   origin: string,
   destination: string,
@@ -87,56 +128,32 @@ async function searchFlights(
   returnDate: string,
   adults: number
 ): Promise<FlightOffer | null> {
-  const params = new URLSearchParams({
-    engine: "google_flights",
-    departure_id: origin,
-    arrival_id: destination,
-    outbound_date: departureDate,
-    return_date: returnDate,
-    adults: String(adults),
-    currency: "EUR",
-    hl: "en",
-    api_key: SERPAPI_KEY!,
-  });
+  const allPrices = await fetchFlightPrices(origin, departureDate, returnDate);
+  const matches = allPrices
+    .filter((f) => f.destination === destination)
+    .sort((a, b) => a.price - b.price);
 
-  const res = await fetch(`${SERPAPI_BASE}?${params}`);
-  if (!res.ok) return null;
+  if (!matches.length) return null;
 
-  const data = await res.json();
+  const cheapest = matches[0];
+  const price = cheapest.price * adults;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const allFlights: any[] = [
-    ...(data.best_flights || []),
-    ...(data.other_flights || []),
-  ];
-
-  if (!allFlights.length) return null;
-
-  const cheapest = allFlights[0];
-  const price = cheapest.price;
-  const leg = cheapest.flights?.[0];
-
-  if (!price || !leg) return null;
-
-  // Use SerpAPI's booking link if available, otherwise build Skyscanner/Google Flights URL
-  const bookingUrl: string = cheapest.booking_token
-    ? `https://www.google.com/travel/flights/booking?tfs=${cheapest.booking_token}`
-    : buildFlightUrl(origin, destination, departureDate, returnDate, adults);
+  const bookingUrl = `https://tp.media/r?marker=${TP_MARKER}&p=4114&u=${encodeURIComponent(
+    `https://www.kiwi.com/en/search/results/${origin.toLowerCase()}/${destination.toLowerCase()}/${departureDate}/${returnDate}?currency=EUR&adults=${adults}`
+  )}`;
 
   return {
     id: `${origin}-${destination}-${departureDate}`,
     origin,
     destination,
-    departureDate,
-    returnDate,
-    airline: leg.airline || "",
-    airlineLogo: leg.airline_logo || "",
+    departureDate: cheapest.departure_at?.split("T")[0] || departureDate,
+    returnDate: cheapest.return_at?.split("T")[0] || returnDate,
+    airline: cheapest.airline || "",
+    airlineLogo: cheapest.airline ? `https://images.kiwi.com/airlines/64/${cheapest.airline}.png` : "",
     price,
     currency: "EUR",
-    duration: cheapest.total_duration
-      ? `${Math.floor(cheapest.total_duration / 60)}h${String(cheapest.total_duration % 60).padStart(2, "0")}`
-      : "",
-    stops: (cheapest.flights?.length || 1) - 1,
+    duration: cheapest.duration ? `${Math.floor(cheapest.duration / 60)}h${String(cheapest.duration % 60).padStart(2, "0")}` : "",
+    stops: cheapest.number_of_changes ?? 0,
     bookingUrl,
   };
 }
@@ -180,12 +197,9 @@ async function searchHotels(
       : 0;
 
     if (price > 0 && price <= maxPrice) {
-      // If affiliate ID is set → Booking.com with hotel name (commission tracked)
-      // Otherwise → Google Hotels direct link (exact property, best UX, no commission)
-      const hasAffiliateId = BOOKING_AID && !BOOKING_AID.startsWith("your_");
-      const bookingUrl = hasAffiliateId
-        ? buildHotelUrl(destinationName, checkIn, checkOut, adults, hotel.name)
-        : (hotel.link || buildHotelUrl(destinationName, checkIn, checkOut, adults, hotel.name));
+      // Priority: Google Hotels direct link (exact property page) > Booking.com search
+      // Travelpayouts Drive script handles affiliate conversion automatically
+      const bookingUrl = hotel.link || buildHotelUrl(destinationName, checkIn, checkOut, adults, hotel.name);
 
       return {
         hotelId: String(hotel.property_token || hotel.name),
@@ -209,6 +223,9 @@ async function searchHotels(
 }
 
 export async function POST(req: NextRequest) {
+  if (!TP_TOKEN) {
+    return NextResponse.json({ error: "TRAVELPAYOUTS_TOKEN is not configured" }, { status: 500 });
+  }
   if (!SERPAPI_KEY) {
     return NextResponse.json({ error: "SERPAPI_KEY is not configured" }, { status: 500 });
   }
