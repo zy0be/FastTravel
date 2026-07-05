@@ -172,7 +172,7 @@ async function searchHotels(
     adults: String(adults),
     currency: "EUR",
     hl: "en",
-    sort_by: "3", // lowest price
+    sort_by: "8", // highest rating
     api_key: SERPAPI_KEY!,
   });
 
@@ -194,7 +194,8 @@ async function searchHotels(
       ? parseFloat(hotel.total_rate.lowest.replace(/[^0-9.]/g, ""))
       : 0;
 
-    if (price > 0 && price <= maxPrice) {
+    const rating = hotel.overall_rating || 0;
+    if (price > 0 && price <= maxPrice && rating >= 4.2) {
       // Priority: Google Hotels direct link (exact property page) > Booking.com search
       // Travelpayouts Drive script handles affiliate conversion automatically
       const bookingUrl = buildHotelUrl(destinationName, checkIn, checkOut, adults, hotel.name);
