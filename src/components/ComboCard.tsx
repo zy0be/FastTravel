@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import type { TravelCombo } from "@/types/travel";
 
 interface Props {
@@ -51,13 +52,181 @@ const CITY_PHOTOS: Record<string, string> = {
   OPO: "photo-1555881400-74d7acaacd8b",
 };
 
+interface Activity {
+  name: string;
+  emoji: string;
+  price: number;
+}
+
+const CITY_ACTIVITIES: Record<string, Activity[]> = {
+  BCN: [
+    { name: "Sagrada Família", emoji: "⛪", price: 26 },
+    { name: "Park Güell", emoji: "🌿", price: 10 },
+    { name: "Camp Nou tour", emoji: "⚽", price: 28 },
+    { name: "Picasso Museum", emoji: "🎨", price: 12 },
+    { name: "Las Ramblas tapas tour", emoji: "🍢", price: 35 },
+  ],
+  LIS: [
+    { name: "Sintra day trip", emoji: "🏰", price: 15 },
+    { name: "Belém Tower", emoji: "🗼", price: 6 },
+    { name: "Tuk-tuk city tour", emoji: "🛺", price: 20 },
+    { name: "Fado dinner show", emoji: "🎸", price: 45 },
+    { name: "Jerónimos Monastery", emoji: "⛪", price: 10 },
+  ],
+  PRG: [
+    { name: "Prague Castle", emoji: "🏰", price: 15 },
+    { name: "Old Town walking tour", emoji: "🚶", price: 12 },
+    { name: "Beer spa", emoji: "🍺", price: 65 },
+    { name: "Boat cruise on Vltava", emoji: "⛵", price: 18 },
+    { name: "Czech cuisine dinner", emoji: "🍖", price: 25 },
+  ],
+  BUD: [
+    { name: "Széchenyi thermal bath", emoji: "♨️", price: 22 },
+    { name: "Parliament tour", emoji: "🏛️", price: 8 },
+    { name: "Ruin bar crawl", emoji: "🍻", price: 30 },
+    { name: "Danube evening cruise", emoji: "🚢", price: 20 },
+    { name: "Hungarian food tour", emoji: "🍲", price: 35 },
+  ],
+  ATH: [
+    { name: "Acropolis + museum", emoji: "🏛️", price: 20 },
+    { name: "Cape Sounion day trip", emoji: "🌅", price: 25 },
+    { name: "Athens food tour", emoji: "🥙", price: 45 },
+    { name: "Aegina island ferry", emoji: "⛴️", price: 18 },
+    { name: "Monastiraki flea market", emoji: "🛍️", price: 0 },
+  ],
+  VIE: [
+    { name: "Schönbrunn Palace", emoji: "🏰", price: 16 },
+    { name: "Vienna State Opera", emoji: "🎭", price: 15 },
+    { name: "Kunsthistorisches Museum", emoji: "🎨", price: 21 },
+    { name: "Prater & Riesenrad", emoji: "🎡", price: 12 },
+    { name: "Coffee house pastry tour", emoji: "☕", price: 20 },
+  ],
+  AMS: [
+    { name: "Anne Frank House", emoji: "📖", price: 16 },
+    { name: "Rijksmuseum", emoji: "🎨", price: 22 },
+    { name: "Canal boat tour", emoji: "⛵", price: 18 },
+    { name: "Keukenhof Gardens", emoji: "🌷", price: 22 },
+    { name: "Van Gogh Museum", emoji: "🖼️", price: 20 },
+  ],
+  MAD: [
+    { name: "Prado Museum", emoji: "🎨", price: 15 },
+    { name: "Flamenco show", emoji: "💃", price: 40 },
+    { name: "Bernabéu stadium tour", emoji: "⚽", price: 25 },
+    { name: "Toledo day trip", emoji: "🏙️", price: 20 },
+    { name: "Mercado de San Miguel", emoji: "🥘", price: 20 },
+  ],
+  CDG: [
+    { name: "Eiffel Tower (summit)", emoji: "🗼", price: 29 },
+    { name: "Louvre Museum", emoji: "🎨", price: 22 },
+    { name: "Versailles Palace", emoji: "🏰", price: 20 },
+    { name: "Seine river cruise", emoji: "⛵", price: 17 },
+    { name: "Montmartre food tour", emoji: "🥐", price: 40 },
+  ],
+  ROM: [
+    { name: "Colosseum + Forum", emoji: "🏛️", price: 18 },
+    { name: "Vatican Museums", emoji: "⛪", price: 20 },
+    { name: "Borghese Gallery", emoji: "🎨", price: 13 },
+    { name: "Roman food tour", emoji: "🍝", price: 45 },
+    { name: "Pompeii day trip", emoji: "🌋", price: 30 },
+  ],
+  MIL: [
+    { name: "The Last Supper", emoji: "🖼️", price: 17 },
+    { name: "Duomo rooftop", emoji: "⛪", price: 14 },
+    { name: "Pinacoteca di Brera", emoji: "🎨", price: 15 },
+    { name: "Lake Como day trip", emoji: "🏞️", price: 25 },
+    { name: "Navigli aperitivo tour", emoji: "🍷", price: 30 },
+  ],
+  IST: [
+    { name: "Hagia Sophia", emoji: "🕌", price: 0 },
+    { name: "Topkapi Palace", emoji: "🏰", price: 15 },
+    { name: "Bosphorus cruise", emoji: "⛴️", price: 20 },
+    { name: "Grand Bazaar", emoji: "🛍️", price: 0 },
+    { name: "Turkish hammam", emoji: "🛁", price: 35 },
+  ],
+  BKK: [
+    { name: "Grand Palace", emoji: "🏯", price: 15 },
+    { name: "Floating market tour", emoji: "🛶", price: 25 },
+    { name: "Muay Thai match", emoji: "🥊", price: 30 },
+    { name: "Street food night tour", emoji: "🍜", price: 20 },
+    { name: "Wat Pho temple", emoji: "🛕", price: 5 },
+  ],
+  DXB: [
+    { name: "Burj Khalifa (top)", emoji: "🏙️", price: 37 },
+    { name: "Desert safari", emoji: "🐪", price: 55 },
+    { name: "Dubai Mall ice rink", emoji: "⛸️", price: 25 },
+    { name: "Dubai Frame", emoji: "🖼️", price: 14 },
+    { name: "Gold Souk", emoji: "💛", price: 0 },
+  ],
+  CPH: [
+    { name: "Tivoli Gardens", emoji: "🎡", price: 17 },
+    { name: "Nyhavn canal walk", emoji: "🚶", price: 0 },
+    { name: "Louisiana Museum", emoji: "🎨", price: 22 },
+    { name: "Christiansborg Palace", emoji: "🏰", price: 18 },
+    { name: "New Nordic food tour", emoji: "🍱", price: 50 },
+  ],
+  WAW: [
+    { name: "Warsaw Rising Museum", emoji: "🏛️", price: 8 },
+    { name: "Old Town walking tour", emoji: "🚶", price: 10 },
+    { name: "Chopin concert", emoji: "🎹", price: 25 },
+    { name: "Łazienki Park", emoji: "🌳", price: 0 },
+    { name: "Pierogi cooking class", emoji: "🥟", price: 40 },
+  ],
+  DUB: [
+    { name: "Guinness Storehouse", emoji: "🍺", price: 25 },
+    { name: "Cliffs of Moher tour", emoji: "🌊", price: 35 },
+    { name: "Trinity College & Book of Kells", emoji: "📚", price: 16 },
+    { name: "Dublin pub crawl", emoji: "🎵", price: 20 },
+    { name: "Kilmainham Gaol", emoji: "🏚️", price: 8 },
+  ],
+  LYS: [
+    { name: "Traboules walking tour", emoji: "🚶", price: 12 },
+    { name: "Institut Lumière", emoji: "🎬", price: 8 },
+    { name: "Lyon food tour (bouchons)", emoji: "🍷", price: 50 },
+    { name: "Fourvière Basilica", emoji: "⛪", price: 0 },
+    { name: "Les Halles de Lyon", emoji: "🧀", price: 15 },
+  ],
+  SKG: [
+    { name: "White Tower", emoji: "🗼", price: 4 },
+    { name: "Archaeological Museum", emoji: "🏛️", price: 8 },
+    { name: "Thessaloniki food tour", emoji: "🥗", price: 35 },
+    { name: "Mount Olympus day trip", emoji: "⛰️", price: 20 },
+    { name: "Ladadika bar district", emoji: "🍻", price: 15 },
+  ],
+  OPO: [
+    { name: "Livraria Lello bookshop", emoji: "📚", price: 5 },
+    { name: "Douro Valley wine tour", emoji: "🍷", price: 55 },
+    { name: "Dom Luís I bridge walk", emoji: "🌉", price: 0 },
+    { name: "Porto food tour", emoji: "🥩", price: 40 },
+    { name: "Serralves Museum", emoji: "🎨", price: 12 },
+  ],
+};
+
 export default function ComboCard({ combo, budget }: Props) {
   const { flight, hotel, totalPrice, savings } = combo;
-  const pct = Math.round((totalPrice / budget) * 100);
   const city = CITY_NAMES[flight.destination] || flight.destination;
   const flag = CITY_EMOJIS[flight.destination] || "🌍";
   const photoId = CITY_PHOTOS[flight.destination];
   const cityPhoto = photoId ? `https://images.unsplash.com/${photoId}?w=600&q=80&fit=crop` : null;
+  const activities = CITY_ACTIVITIES[flight.destination] || [];
+
+  const [showActivities, setShowActivities] = useState(false);
+  const [checkedActivities, setCheckedActivities] = useState<Set<number>>(new Set());
+
+  const activitiesTotal = Array.from(checkedActivities).reduce(
+    (sum, idx) => sum + (activities[idx]?.price ?? 0),
+    0
+  );
+  const grandTotal = totalPrice + activitiesTotal;
+  const pct = Math.round((grandTotal / budget) * 100);
+
+  function toggleActivity(idx: number) {
+    setCheckedActivities((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  }
 
   return (
     <div className="group bg-white/4 border border-white/8 rounded-3xl overflow-hidden hover:border-indigo-500/40 hover:bg-white/6 transition-all duration-300">
@@ -134,15 +303,68 @@ export default function ComboCard({ combo, budget }: Props) {
           <span className="text-white font-bold">€{hotel.price.toFixed(0)}</span>
         </div>
 
+        {/* Activities toggle */}
+        {activities.length > 0 && (
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowActivities(!showActivities)}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-white/4 hover:bg-white/8 border border-white/8 hover:border-white/16 transition-all text-sm text-white/60 hover:text-white"
+            >
+              <span className="flex items-center gap-2">
+                <span>🎯</span>
+                <span>Activities{checkedActivities.size > 0 && <span className="ml-1.5 text-indigo-400 font-semibold">+€{activitiesTotal}</span>}</span>
+              </span>
+              <span className={`text-white/30 transition-transform duration-200 ${showActivities ? "rotate-180" : ""}`}>▼</span>
+            </button>
+
+            {showActivities && (
+              <div className="mt-2 space-y-1.5 px-1">
+                {activities.map((act, idx) => {
+                  const checked = checkedActivities.has(idx);
+                  return (
+                    <label
+                      key={idx}
+                      className={`flex items-center justify-between gap-3 px-3 py-2 rounded-xl cursor-pointer transition-all ${
+                        checked
+                          ? "bg-indigo-600/20 border border-indigo-500/30"
+                          : "bg-white/3 border border-transparent hover:bg-white/6"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleActivity(idx)}
+                          className="w-4 h-4 accent-indigo-500 cursor-pointer"
+                        />
+                        <span className="text-base">{act.emoji}</span>
+                        <span className="text-sm text-white/80">{act.name}</span>
+                      </div>
+                      <span className={`text-sm font-semibold shrink-0 ${act.price === 0 ? "text-emerald-400" : "text-white/60"}`}>
+                        {act.price === 0 ? "Free" : `€${act.price}`}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Budget bar */}
         <div className="space-y-1.5">
           <div className="flex justify-between text-xs text-white/30">
             <span>Budget used</span>
-            <span>{pct}% of €{budget}</span>
+            <span className={pct > 100 ? "text-red-400 font-semibold" : ""}>{pct}% of €{budget}</span>
           </div>
           <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-indigo-600 to-indigo-400 rounded-full"
+              className={`h-full rounded-full transition-all duration-300 ${
+                pct > 100
+                  ? "bg-gradient-to-r from-red-600 to-red-400"
+                  : "bg-gradient-to-r from-indigo-600 to-indigo-400"
+              }`}
               style={{ width: `${Math.min(pct, 100)}%` }}
             />
           </div>
@@ -150,8 +372,12 @@ export default function ComboCard({ combo, budget }: Props) {
 
         {/* Total */}
         <div className="flex items-center justify-between pt-1 border-t border-white/6">
-          <span className="text-sm text-white/40">Total for {flight.stops === 0 ? "direct" : ""} trip</span>
-          <span className="text-2xl font-black text-indigo-300">€{totalPrice.toFixed(0)}</span>
+          <span className="text-sm text-white/40">
+            {checkedActivities.size > 0 ? `Trip + ${checkedActivities.size} activit${checkedActivities.size > 1 ? "ies" : "y"}` : "Total for trip"}
+          </span>
+          <span className={`text-2xl font-black ${pct > 100 ? "text-red-400" : "text-indigo-300"}`}>
+            €{grandTotal.toFixed(0)}
+          </span>
         </div>
 
         {/* Book buttons */}
