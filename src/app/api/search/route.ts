@@ -196,7 +196,7 @@ async function searchHotels(
     if (price > 0 && price <= maxPrice) {
       // Priority: Google Hotels direct link (exact property page) > Booking.com search
       // Travelpayouts Drive script handles affiliate conversion automatically
-      const bookingUrl = hotel.link || buildHotelUrl(destinationName, checkIn, checkOut, adults, hotel.name);
+      const bookingUrl = buildHotelUrl(destinationName, checkIn, checkOut, adults, hotel.name);
 
       return {
         hotelId: String(hotel.property_token || hotel.name),
