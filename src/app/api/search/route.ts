@@ -8,26 +8,26 @@ const SKYSCANNER_ID = process.env.SKYSCANNER_AFFILIATE_ID;
 const TP_TOKEN = process.env.TRAVELPAYOUTS_TOKEN;
 
 const POPULAR_DESTINATIONS = [
-  { code: "BCN", name: "Barcelona", country: "spain" },
-  { code: "LIS", name: "Lisbon", country: "portugal" },
-  { code: "PRG", name: "Prague", country: "czech" },
-  { code: "BUD", name: "Budapest", country: "hungary" },
-  { code: "ATH", name: "Athens", country: "greece" },
-  { code: "WAW", name: "Warsaw", country: "poland" },
-  { code: "VIE", name: "Vienna", country: "austria" },
-  { code: "DUB", name: "Dublin", country: "ireland" },
-  { code: "CPH", name: "Copenhagen", country: "denmark" },
-  { code: "BKK", name: "Bangkok", country: "thailand" },
-  { code: "DXB", name: "Dubai", country: "uae" },
-  { code: "IST", name: "Istanbul", country: "turkey" },
-  { code: "MIL", name: "Milan", country: "italy" },
-  { code: "ROM", name: "Rome", country: "italy" },
-  { code: "AMS", name: "Amsterdam", country: "netherlands" },
-  { code: "MAD", name: "Madrid", country: "spain" },
-  { code: "CDG", name: "Paris", country: "france" },
-  { code: "LYS", name: "Lyon", country: "france" },
-  { code: "SKG", name: "Thessaloniki", country: "greece" },
-  { code: "OPO", name: "Porto", country: "portugal" },
+  { code: "BCN", name: "Barcelona", country: "spain",       bookingDestId: "-372490"  },
+  { code: "LIS", name: "Lisbon",    country: "portugal",    bookingDestId: "-2167973" },
+  { code: "PRG", name: "Prague",    country: "czech",       bookingDestId: "-553173"  },
+  { code: "BUD", name: "Budapest",  country: "hungary",     bookingDestId: "-850553"  },
+  { code: "ATH", name: "Athens",    country: "greece",      bookingDestId: "-814876"  },
+  { code: "WAW", name: "Warsaw",    country: "poland",      bookingDestId: "-535403"  },
+  { code: "VIE", name: "Vienna",    country: "austria",     bookingDestId: "-1995499" },
+  { code: "DUB", name: "Dublin",    country: "ireland",     bookingDestId: "-1427945" },
+  { code: "CPH", name: "Copenhagen",country: "denmark",     bookingDestId: "-2191903" },
+  { code: "BKK", name: "Bangkok",   country: "thailand",    bookingDestId: "-3500102" },
+  { code: "DXB", name: "Dubai",     country: "uae",         bookingDestId: "-782831"  },
+  { code: "IST", name: "Istanbul",  country: "turkey",      bookingDestId: "-755070"  },
+  { code: "MIL", name: "Milan",     country: "italy",       bookingDestId: "-121726"  },
+  { code: "ROM", name: "Rome",      country: "italy",       bookingDestId: "-126693"  },
+  { code: "AMS", name: "Amsterdam", country: "netherlands", bookingDestId: "-2140479" },
+  { code: "MAD", name: "Madrid",    country: "spain",       bookingDestId: "-390625"  },
+  { code: "CDG", name: "Paris",     country: "france",      bookingDestId: "-1456928" },
+  { code: "LYS", name: "Lyon",      country: "france",      bookingDestId: "-1601453" },
+  { code: "SKG", name: "Thessaloniki", country: "greece",   bookingDestId: "-820347"  },
+  { code: "OPO", name: "Porto",     country: "portugal",    bookingDestId: "-2170656" },
 ];
 
 const POPULAR_ORIGINS = ["CDG", "LHR", "MAD", "BER", "ZRH"];
@@ -66,11 +66,16 @@ function buildFlightUrl(origin: string, destination: string, departureDate: stri
   return `https://www.google.com/travel/flights/search?q=${encodeURIComponent(q)}&adults=${adults}&curr=EUR`;
 }
 
-function buildHotelUrl(cityName: string, checkIn: string, checkOut: string, adults: number, hotelName?: string): string {
-  const ss = hotelName ? `${hotelName}, ${cityName}` : cityName;
-  const bookingUrl = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(ss)}&checkin=${checkIn}&checkout=${checkOut}&no_rooms=1&group_adults=${adults}&selected_currency=EUR`;
+function buildHotelUrl(cityName: string, checkIn: string, checkOut: string, adults: number, hotelName?: string, destId?: string): string {
+  const dest = POPULAR_DESTINATIONS.find((d) => d.name === cityName);
+  const bookingDestId = destId || dest?.bookingDestId;
 
-  return bookingUrl;
+  if (bookingDestId) {
+    return `https://www.booking.com/searchresults.html?dest_id=${bookingDestId}&dest_type=city&checkin=${checkIn}&checkout=${checkOut}&group_adults=${adults}&no_rooms=1&selected_currency=EUR`;
+  }
+
+  const ss = hotelName ? `${hotelName}, ${cityName}` : cityName;
+  return `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(ss)}&checkin=${checkIn}&checkout=${checkOut}&no_rooms=1&group_adults=${adults}&selected_currency=EUR`;
 }
 
 // Cache: origin -> list of flight prices (refreshed every 6h)
