@@ -32,6 +32,13 @@ const POPULAR_DESTINATIONS = [
 
 const POPULAR_ORIGINS = ["CDG", "LHR", "MAD", "BER", "ZRH"];
 
+const ORIGIN_NAMES: Record<string, string> = {
+  CDG: "paris", LHR: "london", MAD: "madrid", BER: "berlin", ZRH: "zurich",
+  AMS: "amsterdam", BCN: "barcelona", FCO: "rome", MXP: "milan",
+};
+
+const TP_MARKER = "522297";
+
 function addDays(dateStr: string, days: number): string {
   const d = new Date(dateStr);
   d.setDate(d.getDate() + days);
@@ -137,7 +144,10 @@ async function searchFlights(
   const cheapest = matches[0];
   const price = cheapest.value * adults;
 
-  const bookingUrl = `https://www.kiwi.com/en/search/results/${origin.toLowerCase()}/${destination.toLowerCase()}/${departureDate}/${returnDate}?currency=EUR&adults=${adults}`;
+  const destInfo = POPULAR_DESTINATIONS.find((d) => d.code === destination);
+  const originSlug = ORIGIN_NAMES[origin] || origin.toLowerCase();
+  const destSlug = destInfo ? destInfo.name.toLowerCase() : destination.toLowerCase();
+  const bookingUrl = `https://www.kiwi.com/en/search/results/${originSlug}/${destSlug}/${departureDate}/${returnDate}?currency=EUR&adults=${adults}&affilid=travelpayoutsapi${TP_MARKER}`;
 
   return {
     id: `${origin}-${destination}-${departureDate}`,
