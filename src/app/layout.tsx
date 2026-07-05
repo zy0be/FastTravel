@@ -27,11 +27,6 @@ export default function RootLayout({
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-[#07090f] text-[#e8eaf6]">
         {children}
-        {/* Travelpayouts Drive — affiliate monetization */}
-        <Script
-          src="https://emrldtp.com/NTIyMjk3.js?t=522297"
-          strategy="afterInteractive"
-        />
       </body>
     </html>
   );
