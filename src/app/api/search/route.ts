@@ -70,6 +70,9 @@ function buildHotelUrl(cityName: string, checkIn: string, checkOut: string, adul
   const ss = hotelName ? `${hotelName}, ${cityName}` : cityName;
   const bookingUrl = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(ss)}&checkin=${checkIn}&checkout=${checkOut}&no_rooms=1&group_adults=${adults}&selected_currency=EUR`;
 
+  if (BOOKING_AID && !BOOKING_AID.startsWith("your_")) {
+    return `https://www.jdoqocy.com/click-${BOOKING_AID}-15734710?url=${encodeURIComponent(bookingUrl)}`;
+  }
 
   return bookingUrl;
 }
