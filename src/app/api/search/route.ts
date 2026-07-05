@@ -20,8 +20,8 @@ const POPULAR_DESTINATIONS = [
   { code: "BKK", name: "Bangkok", country: "thailand" },
   { code: "DXB", name: "Dubai", country: "uae" },
   { code: "IST", name: "Istanbul", country: "turkey" },
-  { code: "MXP", name: "Milan", country: "italy" },
-  { code: "FCO", name: "Rome", country: "italy" },
+  { code: "MIL", name: "Milan", country: "italy" },
+  { code: "ROM", name: "Rome", country: "italy" },
   { code: "AMS", name: "Amsterdam", country: "netherlands" },
   { code: "MAD", name: "Madrid", country: "spain" },
   { code: "CDG", name: "Paris", country: "france" },
@@ -88,10 +88,10 @@ const CACHE_TTL = 6 * 60 * 60 * 1000;
 interface TPFlight {
   origin: string;
   destination: string;
-  price: number;
-  airline: string;
-  departure_at: string;
-  return_at: string;
+  value: number;
+  gate: string;
+  depart_date: string;
+  return_date: string;
   number_of_changes: number;
   duration: number;
 }
@@ -130,12 +130,12 @@ async function searchFlights(
   const allPrices = await fetchFlightPrices(origin, departureDate, returnDate);
   const matches = allPrices
     .filter((f) => f.destination === destination)
-    .sort((a, b) => a.price - b.price);
+    .sort((a, b) => a.value - b.value);
 
   if (!matches.length) return null;
 
   const cheapest = matches[0];
-  const price = cheapest.price * adults;
+  const price = cheapest.value * adults;
 
   const bookingUrl = `https://www.kiwi.com/en/search/results/${origin.toLowerCase()}/${destination.toLowerCase()}/${departureDate}/${returnDate}?currency=EUR&adults=${adults}`;
 
@@ -143,10 +143,10 @@ async function searchFlights(
     id: `${origin}-${destination}-${departureDate}`,
     origin,
     destination,
-    departureDate: cheapest.departure_at?.split("T")[0] || departureDate,
-    returnDate: cheapest.return_at?.split("T")[0] || returnDate,
-    airline: cheapest.airline || "",
-    airlineLogo: cheapest.airline ? `https://images.kiwi.com/airlines/64/${cheapest.airline}.png` : "",
+    departureDate: cheapest.depart_date || departureDate,
+    returnDate: cheapest.return_date || returnDate,
+    airline: cheapest.gate || "",
+    airlineLogo: "",
     price,
     currency: "EUR",
     duration: cheapest.duration ? `${Math.floor(cheapest.duration / 60)}h${String(cheapest.duration % 60).padStart(2, "0")}` : "",
