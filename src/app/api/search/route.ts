@@ -266,7 +266,7 @@ export async function POST(req: NextRequest) {
             if (!flight || flight.price >= budget) return;
 
             const hotelBudget = budget - flight.price;
-            const hotel = await searchHotels(dest.code, dest.name, depDate, retDate, adults, hotelBudget);
+            const hotel = await searchHotels(dest.code, dest.name, flight.departureDate, flight.returnDate || retDate, adults, hotelBudget);
             if (!hotel) return;
 
             const total = flight.price + hotel.price;

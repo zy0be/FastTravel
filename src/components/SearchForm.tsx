@@ -143,6 +143,23 @@ export default function SearchForm({ onSearch, loading }: Props) {
         )}
       </div>
 
+      {/* Departure airport */}
+      <div className="space-y-2">
+        <label className="block text-sm text-white/60">Departure airport</label>
+        <select
+          value={origin}
+          onChange={(e) => setOrigin(e.target.value)}
+          className="w-full px-4 py-3 bg-[#13131f] border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-400 transition-colors"
+        >
+          <option value="" className="bg-[#13131f] text-white">🌍 Anywhere (best prices)</option>
+          {AIRPORT_OPTIONS.map((a) => (
+            <option key={a.code} value={a.code} className="bg-[#13131f] text-white">
+              {a.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Adults */}
       <div className="flex items-center gap-4">
         <label className="text-sm text-white/60">Travelers</label>
@@ -177,23 +194,6 @@ export default function SearchForm({ onSearch, loading }: Props) {
 
       {showAdvanced && (
         <div className="space-y-4 p-4 bg-white/3 rounded-2xl border border-white/10">
-          {/* Departure city */}
-          <div className="space-y-1.5">
-            <label className="block text-sm text-white/60">Departure city (optional)</label>
-            <select
-              value={origin}
-              onChange={(e) => setOrigin(e.target.value)}
-              className="w-full px-4 py-3 bg-[#13131f] border border-white/10 rounded-xl text-white focus:outline-none focus:border-indigo-400 transition-colors"
-            >
-              <option value="" className="bg-[#13131f] text-white">🌍 Anywhere (best prices)</option>
-              {AIRPORT_OPTIONS.map((a) => (
-                <option key={a.code} value={a.code} className="bg-[#13131f] text-white">
-                  {a.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Dates */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
