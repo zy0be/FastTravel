@@ -70,9 +70,6 @@ function buildHotelUrl(cityName: string, checkIn: string, checkOut: string, adul
   const ss = hotelName ? `${hotelName}, ${cityName}` : cityName;
   const bookingUrl = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(ss)}&checkin=${checkIn}&checkout=${checkOut}&no_rooms=1&group_adults=${adults}&selected_currency=EUR`;
 
-  if (BOOKING_AID && !BOOKING_AID.startsWith("your_")) {
-    return `https://www.anrdoezrs.net/click-7938941-4297313?url=${encodeURIComponent(bookingUrl)}`;
-  }
 
   return bookingUrl;
 }
