@@ -144,10 +144,11 @@ async function searchFlights(
   const cheapest = matches[0];
   const price = cheapest.value * adults;
 
-  const destInfo = POPULAR_DESTINATIONS.find((d) => d.code === destination);
-  const originSlug = ORIGIN_NAMES[origin] || origin.toLowerCase();
-  const destSlug = destInfo ? destInfo.name.toLowerCase() : destination.toLowerCase();
-  const bookingUrl = `https://www.kiwi.com/en/search/results/${originSlug}/${destSlug}/${departureDate}/${returnDate}?currency=EUR&adults=${adults}&affilid=travelpayoutsapi${TP_MARKER}`;
+  const depParts = departureDate.split("-");
+  const retParts = returnDate.split("-");
+  const depDDMM = `${depParts[2]}${depParts[1]}`;
+  const retDDMM = `${retParts[2]}${retParts[1]}`;
+  const bookingUrl = `https://www.aviasales.com/search/${origin}${depDDMM}${destination}${retDDMM}${adults}?marker=${TP_MARKER}&currency=eur`;
 
   return {
     id: `${origin}-${destination}-${departureDate}`,
