@@ -67,20 +67,9 @@ function buildFlightUrl(origin: string, destination: string, departureDate: stri
 }
 
 function buildHotelUrl(cityName: string, checkIn: string, checkOut: string, adults: number, hotelName?: string): string {
-  const searchParams = new URLSearchParams({
-    ss: hotelName ? `${hotelName}, ${cityName}` : cityName,
-    checkin: checkIn,
-    checkout: checkOut,
-    no_rooms: "1",
-    group_adults: String(adults),
-    lang: "en-gb",
-    selected_currency: "EUR",
-  });
+  const ss = hotelName ? `${hotelName}, ${cityName}` : cityName;
+  const bookingUrl = `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(ss)}&checkin=${checkIn}&checkout=${checkOut}&no_rooms=1&group_adults=${adults}&selected_currency=EUR`;
 
-  const bookingUrl = `https://www.booking.com/searchresults.html?${searchParams}`;
-
-  // CJ Affiliate tracking link format: click-{PID}-{AdvertiserID}
-  // Booking.com FR advertiser ID on CJ = 4297313
   if (BOOKING_AID && !BOOKING_AID.startsWith("your_")) {
     return `https://www.anrdoezrs.net/click-${BOOKING_AID}-4297313?url=${encodeURIComponent(bookingUrl)}`;
   }
